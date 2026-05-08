@@ -9,6 +9,7 @@ export default function Welcome() {
   const navigate = useNavigate();
   const [user, loading] = useAuthState(auth);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && !loading) {
@@ -18,10 +19,16 @@ export default function Welcome() {
 
   const handleSignIn = async () => {
     setIsSigningIn(true);
+    setError(null);
     try {
       await signInWithGoogle();
-    } catch (error) {
-      console.error("Sign in failed:", error);
+    } catch (err: any) {
+      console.error("Sign in failed:", err);
+      if (err.code === 'auth/popup-blocked') {
+        setError("Popup blocked. Please allow popups or open in a new tab.");
+      } else {
+        setError("Failed to sign in. Please try again.");
+      }
     } finally {
       setIsSigningIn(false);
     }
@@ -64,6 +71,15 @@ export default function Welcome() {
         </p>
 
         <div className="flex flex-col gap-4 w-full max-w-xs mx-auto">
+          {error && (
+            <motion.p 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-red-400 text-[10px] font-black uppercase tracking-widest mb-2"
+            >
+              {error}
+            </motion.p>
+          )}
           <button 
             onClick={handleSignIn}
             disabled={isSigningIn || loading}
