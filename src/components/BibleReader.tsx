@@ -1078,10 +1078,10 @@ export default function BibleReader() {
                       >
                         <span
                           className={cn(
-                            "absolute -left-7 top-1.5 w-6 flex flex-col items-end gap-1.5 text-[9px] font-black tracking-widest font-sans transition-colors",
+                            "absolute -left-8 top-1 w-7 flex flex-col items-end gap-1.5 text-[11px] font-black tracking-widest font-sans transition-colors",
                             isActive
-                              ? "text-brand-primary"
-                              : "text-brand-primary/20",
+                              ? "text-brand-primary drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]"
+                              : "text-brand-primary/40",
                           )}
                         >
                           <span className="block text-right w-full">
@@ -1409,7 +1409,7 @@ export default function BibleReader() {
                           <p className="font-bold text-lg text-white group-hover:text-brand-primary transition-colors flex items-center gap-2">
                             {item.bookName} {item.chapterNum}
                             {item.verseNum && (
-                              <span className="text-xs opacity-40 font-normal">
+                              <span className="text-[11px] opacity-60 font-bold ml-1 text-brand-primary">
                                 v.{item.verseNum}
                               </span>
                             )}
