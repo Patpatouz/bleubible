@@ -660,6 +660,20 @@ export default function BibleReader() {
     }
   };
 
+  const [lastClickTime, setLastClickTime] = useState<number>(0);
+
+  const handleVerseClick = (text: string, verseNum: number) => {
+    const now = Date.now();
+    if (now - lastClickTime < 350) {
+      // Double tap detected
+      handleExplainVerse(verseNum);
+      setLastClickTime(0);
+    } else {
+      setLastClickTime(now);
+      speak(text, verseNum);
+    }
+  };
+
   const selectBook = (book: BibleBook) => {
     setCurrentBook(book);
     setSelectorTab("chapters");
@@ -1078,34 +1092,46 @@ export default function BibleReader() {
                       >
                         <span
                           className={cn(
-                            "absolute -left-8 top-1 w-7 flex flex-col items-end gap-1.5 text-[11px] font-black tracking-widest font-sans transition-colors",
+                            "absolute -left-10 top-0.5 w-9 flex flex-col items-end gap-1.5 text-[15px] font-black tracking-widest font-sans transition-colors",
                             isActive
-                              ? "text-brand-primary drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]"
+                              ? "text-brand-primary drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
                               : "text-brand-primary/40",
                           )}
                         >
                           <span className="block text-right w-full">
                             {verse.number}
                           </span>
-                          {hasNote && (
+                          <div className="flex flex-col items-end gap-2 mt-1">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setEditingNote({
-                                  key: noteKey,
-                                  text: notes[noteKey],
-                                  verseNum: verse.number,
-                                });
+                                handleExplainVerse(verse.number);
                               }}
-                              title="View Note"
-                              className="text-brand-primary/40 hover:text-brand-primary"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-brand-primary/40 hover:text-brand-primary p-1 bg-white/[0.03] rounded-md"
+                              title="AI Insight"
                             >
-                              <StickyNote className="w-2.5 h-2.5" strokeWidth={1.25} />
+                              <Sparkles className="w-2.5 h-2.5" />
                             </button>
-                          )}
+                            {hasNote && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingNote({
+                                    key: noteKey,
+                                    text: notes[noteKey],
+                                    verseNum: verse.number,
+                                  });
+                                }}
+                                title="View Note"
+                                className="text-brand-primary/40 hover:text-brand-primary"
+                              >
+                                <StickyNote className="w-2.5 h-2.5" strokeWidth={1.25} />
+                              </button>
+                            )}
+                          </div>
                         </span>
                         <span
-                          onClick={() => speak(verse.text, verse.number)}
+                          onClick={() => handleVerseClick(verse.text, verse.number)}
                           className={cn(
                             "transition-all duration-300 rounded-lg px-2 -mx-2 block cursor-pointer",
                             isActive
@@ -1409,7 +1435,7 @@ export default function BibleReader() {
                           <p className="font-bold text-lg text-white group-hover:text-brand-primary transition-colors flex items-center gap-2">
                             {item.bookName} {item.chapterNum}
                             {item.verseNum && (
-                              <span className="text-[11px] opacity-60 font-bold ml-1 text-brand-primary">
+                              <span className="text-[14px] opacity-80 font-black ml-1 text-brand-primary">
                                 v.{item.verseNum}
                               </span>
                             )}
@@ -1622,8 +1648,8 @@ export default function BibleReader() {
                       }
                       className="text-left bg-white/5 border border-white/5 p-5 rounded-3xl hover:bg-white/10 transition-all group"
                     >
-                      <h4 className="font-bold text-brand-primary mb-2 group-hover:translate-x-1 transition-transform">
-                        {result.book_name} {result.chapter}:{result.verse}
+                      <h4 className="font-bold text-brand-primary mb-2 group-hover:translate-x-1 transition-transform flex items-baseline gap-1">
+                        {result.book_name} {result.chapter}:<span className="text-xl font-black">{result.verse}</span>
                       </h4>
                       <p className="text-sm text-white/70 leading-relaxed font-serif italic">
                         "{result.text.trim()}"
@@ -1695,7 +1721,9 @@ export default function BibleReader() {
             >
               <div className="flex justify-between items-center mb-4 px-1">
                 <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Select Action</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary">Verse {highlightMenu.verseNum}</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-brand-primary flex items-center gap-1.5">
+                  Verse <span className="text-sm">{highlightMenu.verseNum}</span>
+                </p>
               </div>
 
               <div className="flex gap-2.5 mb-4 px-1">

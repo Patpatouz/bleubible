@@ -117,7 +117,14 @@ export default function Bookmarks() {
                   {bookmark.type === 'verse' ? <Bookmark className="w-5 h-5 fill-current" /> : <BookOpen className="w-5 h-5" />}
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg leading-tight">{bookmark.reference}</h3>
+                  <h3 className="font-bold text-lg leading-tight flex items-baseline gap-1">
+                    {bookmark.reference.split(':').length > 1 ? (
+                      <>
+                        {bookmark.reference.split(':')[0]}:
+                        <span className="text-xl font-black text-brand-primary">{bookmark.reference.split(':')[1]}</span>
+                      </>
+                    ) : bookmark.reference}
+                  </h3>
                   <div className="flex items-center gap-2 text-[10px] text-white/20 uppercase font-black tracking-widest mt-1">
                     <Calendar className="w-3 h-3" />
                     {bookmark.createdAt instanceof Object && 'seconds' in bookmark.createdAt 
