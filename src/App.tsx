@@ -83,7 +83,7 @@ function Navigation() {
   };
 
   return (
-    <nav id="bottom-nav" className="fixed bottom-0 left-0 right-0 bg-[#090A0C]/90 backdrop-blur-3xl border-t border-white/10 flex items-center justify-around px-2 z-50 shadow-[0_-20px_60px_rgba(0,0,0,0.8)]">
+    <nav id="bottom-nav" className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-3xl border-t border-white/5 flex items-center justify-around px-2 z-50 shadow-[0_-20px_60px_rgba(0,0,0,0.9)]">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path || (item.path === '/plans' && location.pathname.startsWith('/plans'));
         return (
