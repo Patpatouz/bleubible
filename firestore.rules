@@ -32,6 +32,32 @@ service cloud.firestore {
       match /settings/{settingId} {
         allow read, write: if isOwner(userId);
       }
+
+      match /journal/{entryId} {
+        function isValidJournal(data) {
+          return data.keys().hasAll(['userId', 'content', 'createdAt']) &&
+                 data.keys().hasOnly(['userId', 'title', 'content', 'prompt', 'pinnedVerses', 'createdAt']) &&
+                 data.userId == request.auth.uid &&
+                 data.content is string && data.content.size() <= 5000 &&
+                 data.createdAt == request.time;
+        }
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidJournal(incoming());
+        allow update: if isOwner(userId) && isValidJournal(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /bookmarks/{bookmarkId} {
+        function isValidBookmark(data) {
+          return data.keys().hasAll(['userId', 'type', 'reference', 'bookId', 'chapterNum', 'createdAt']) &&
+                 data.userId == request.auth.uid &&
+                 data.type in ['verse', 'chapter'] &&
+                 data.createdAt == request.time;
+        }
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidBookmark(incoming());
+        allow delete: if isOwner(userId);
+      }
     }
 
     // --- PRAYERS ---

@@ -23,7 +23,9 @@ import {
   BookOpenText,
   PanelLeftClose,
   PanelRightClose,
-  ArrowUpRight
+  ArrowUpRight,
+  Bookmark,
+  Quote
 } from "lucide-react";
 import { geminiService, ExplanationResponse, StudyAidResponse } from "../services/geminiService";
 import { fetchChapter, searchBible } from "../services/bibleService";
@@ -33,6 +35,7 @@ import { cn } from "../lib/utils";
 import { BibleLinker } from "./BibleLinker";
 import { findBook, parseBibleReference } from "../lib/bibleUtils";
 import { auth, db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { bookmarkService } from "../services/bookmarkService";
 import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import {
@@ -284,6 +287,10 @@ export default function BibleReader() {
   const [studyOpen, setStudyOpen] = useState(false);
   const [studyData, setStudyData] = useState<StudyAidResponse | null>(null);
   const [isStudyLoading, setIsStudyLoading] = useState(false);
+  const [isPinning, setIsPinning] = useState(false);
+  const [pinSuccess, setPinSuccess] = useState<string | null>(null);
+  const [bookmarks, setBookmarks] = useState<any[]>([]);
+  const [isBookmarking, setIsBookmarking] = useState(false);
   const [isRedLetterEnabled, setIsRedLetterEnabled] = useState(true);
   const [jesusSpeech, setJesusSpeech] = useState<Record<string, string[]>>({});
   const [isDetectingSpeech, setIsDetectingSpeech] = useState(false);
@@ -684,6 +691,37 @@ export default function BibleReader() {
     }
   };
 
+  const handlePinVerse = async (verseNum: number) => {
+    const verse = chapter?.verses.find((v) => v.number === verseNum);
+    if (!verse || !chapter || !user) return;
+
+    setHighlightMenu(null);
+    setIsPinning(true);
+    try {
+      const { journalService } = await import("../services/journalService");
+      const entries = await journalService.getJournalEntries();
+      
+      let entryId = "";
+      if (entries.length > 0) {
+        entryId = entries[0].id;
+      } else {
+        entryId = await journalService.createEntry({
+          content: "Pinned from my Bible study.",
+          title: "Pinned Verses"
+        });
+      }
+
+      const reference = `${chapter.bookName} ${chapter.number}:${verseNum}`;
+      await journalService.pinVerse(entryId, reference, verse.text);
+      setPinSuccess(reference);
+      setTimeout(() => setPinSuccess(null), 3000);
+    } catch (err) {
+      console.error("Pin Verse Error:", err);
+    } finally {
+      setIsPinning(false);
+    }
+  };
+
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -696,6 +734,63 @@ export default function BibleReader() {
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (user) {
+      bookmarkService.getBookmarks().then(setBookmarks);
+    }
+  }, [user]);
+
+  const toggleBookmark = async (type: 'verse' | 'chapter', verseNum?: number) => {
+    if (!user || !chapter) return;
+    setIsBookmarking(true);
+    try {
+      const reference = type === 'verse' 
+        ? `${chapter.bookName} ${chapter.number}:${verseNum}`
+        : `${chapter.bookName} ${chapter.number}`;
+      
+      const existing = bookmarks.find(b => b.reference === reference);
+      
+      if (existing) {
+        await bookmarkService.removeBookmark(existing.id);
+        setBookmarks(prev => prev.filter(b => b.id !== existing.id));
+      } else {
+        const verse = type === 'verse' ? chapter.verses.find(v => v.number === verseNum) : null;
+        const newId = await bookmarkService.addBookmark({
+          type,
+          reference,
+          text: verse?.text,
+          bookId: currentBook.id,
+          chapterNum: currentChapterNum,
+          verseNum
+        });
+        setBookmarks(prev => [{
+          id: newId,
+          type,
+          reference,
+          text: verse?.text,
+          bookId: currentBook.id,
+          chapterNum: currentChapterNum,
+          verseNum
+        }, ...prev]);
+        
+        setPinSuccess(reference);
+        setTimeout(() => setPinSuccess(null), 2000);
+      }
+    } catch (err) {
+      console.error("Bookmark Error:", err);
+    } finally {
+      setIsBookmarking(false);
+      setHighlightMenu(null);
+    }
+  };
+
+  const isBookmarked = (type: 'verse' | 'chapter', verseNum?: number) => {
+    const reference = type === 'verse' 
+      ? `${chapter?.bookName} ${chapter?.number}:${verseNum}`
+      : `${chapter?.bookName} ${chapter?.number}`;
+    return bookmarks.some(b => b.reference === reference);
   };
 
   const navigateToVerse = (bookName: string, chapterNum: number, verseNum?: number) => {
@@ -816,10 +911,7 @@ export default function BibleReader() {
             </div>
           )}
           <button
-            onClick={() => {
-              setSelectorTab("books");
-              setSelectorOpen(true);
-            }}
+            onClick={() => setSelectorOpen(true)}
             className="flex gap-1.5 sm:gap-2 items-center px-4 py-1.5 bg-white/[0.03] rounded-full border border-white/5 hover:bg-white/10 transition-colors shrink-0"
           >
             <span className="text-xs font-bold text-white/80 truncate">
@@ -827,6 +919,24 @@ export default function BibleReader() {
             </span>
             <ChevronRight className="w-3 h-3 text-white/20 rotate-90 shrink-0" strokeWidth={1.25} />
           </button>
+
+          <button
+            onClick={() => toggleBookmark('chapter')}
+            disabled={isBookmarking}
+            className={cn(
+              "flex items-center justify-center w-8 h-8 rounded-full border transition-all",
+              isBookmarked('chapter') 
+                ? "bg-brand-primary/10 border-brand-primary/20 text-brand-primary" 
+                : "bg-white/[0.03] border-white/5 text-white/40 hover:text-white"
+            )}
+          >
+            {isBookmarking ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Bookmark className={cn("w-3.5 h-3.5", isBookmarked('chapter') && "fill-current")} />
+            )}
+          </button>
+
           <button
             onClick={() => {
               setSelectorTab("versions");
@@ -1645,9 +1755,62 @@ export default function BibleReader() {
                   <Library className="w-4 h-4" />
                   <span className="text-sm font-bold">Deep Study</span>
                 </button>
+
+                <button
+                  onClick={() => handlePinVerse(highlightMenu.verseNum)}
+                  disabled={isPinning}
+                  className="w-full h-11 px-4 rounded-2xl border border-white/5 flex items-center gap-3 bg-white/[0.03] hover:bg-white/10 transition-colors text-white/40 hover:text-white"
+                >
+                  {isPinning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Quote className="w-4 h-4" />}
+                  <span className="text-sm font-bold">Pin to Journal</span>
+                </button>
+
+                <button
+                  onClick={() => toggleBookmark('verse', highlightMenu.verseNum)}
+                  disabled={isBookmarking}
+                  className={cn(
+                    "w-full h-11 px-4 rounded-2xl border flex items-center gap-3 transition-all",
+                    isBookmarked('verse', highlightMenu.verseNum)
+                      ? "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
+                      : "bg-white/[0.03] border-white/5 text-white/40 hover:text-white"
+                  )}
+                >
+                  {isBookmarking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bookmark className={cn("w-4 h-4", isBookmarked('verse', highlightMenu.verseNum) && "fill-current")} />}
+                  <span className="text-sm font-bold">
+                    {isBookmarked('verse', highlightMenu.verseNum) ? 'Remove Bookmark' : 'Bookmark Verse'}
+                  </span>
+                </button>
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Pin Toast */}
+      <AnimatePresence>
+        {pinSuccess && (
+          <motion.div
+            initial={{ y: 50, opacity: 0, scale: 0.9 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 20, opacity: 0, scale: 0.9 }}
+            className="fixed bottom-24 left-4 right-4 z-[120] md:left-auto md:right-8 md:w-80"
+          >
+            <div className="bg-[#1C1F26]/90 backdrop-blur-2xl border border-brand-primary/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-3xl p-5 flex items-center gap-4">
+              <div className="w-12 h-12 bg-brand-primary/20 rounded-2xl flex items-center justify-center text-brand-primary shadow-lg shadow-brand-primary/10">
+                <Bookmark className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-bold text-white tracking-tight leading-none mb-1">Verse Pinned</h3>
+                <p className="text-[10px] text-white/30 font-black uppercase tracking-widest">{pinSuccess}</p>
+              </div>
+              <button 
+                onClick={() => setPinSuccess(null)}
+                className="p-1 text-white/10 hover:text-white/30"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 

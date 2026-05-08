@@ -1,9 +1,31 @@
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, LogIn, Loader2 } from 'lucide-react';
+import { auth, signInWithGoogle } from '../lib/firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useEffect, useState } from 'react';
 
 export default function Welcome() {
   const navigate = useNavigate();
+  const [user, loading] = useAuthState(auth);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
+  useEffect(() => {
+    if (user && !loading) {
+      navigate('/dashboard');
+    }
+  }, [user, loading, navigate]);
+
+  const handleSignIn = async () => {
+    setIsSigningIn(true);
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error("Sign in failed:", error);
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
 
   return (
     <motion.div 
@@ -43,13 +65,23 @@ export default function Welcome() {
 
         <div className="flex flex-col gap-4 w-full max-w-xs mx-auto">
           <button 
-            onClick={() => navigate('/dashboard')}
-            className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white font-bold py-5 rounded-2xl transition-all active:scale-95 shadow-2xl shadow-brand-primary/20"
+            onClick={handleSignIn}
+            disabled={isSigningIn || loading}
+            className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white font-bold py-5 rounded-2xl transition-all active:scale-95 shadow-2xl shadow-brand-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
           >
-            Get Started
+            {isSigningIn || (loading && !user) ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <LogIn className="w-5 h-5" />
+            )}
+            {isSigningIn ? 'Signing in...' : 'Get Started with Google'}
           </button>
           
-          <button className="text-white/20 text-xs font-black uppercase tracking-widest py-3 hover:text-brand-primary transition-colors">
+          <button 
+            onClick={handleSignIn}
+            disabled={isSigningIn || loading}
+            className="text-white/20 text-xs font-black uppercase tracking-widest py-3 hover:text-brand-primary transition-colors disabled:opacity-30"
+          >
             Already have an account? <span className="text-brand-primary/80 underline underline-offset-4 decoration-brand-primary/20">Sign in</span>
           </button>
         </div>

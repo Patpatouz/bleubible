@@ -443,7 +443,14 @@ export default function Dashboard() {
 
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => navigate("/bible")}
+            onClick={() => navigate("/bookmarks")}
+            className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/[0.02] rounded-2xl group hover:bg-white/5 transition-colors"
+          >
+            <span className="font-medium text-white/50 group-hover:text-white/80 transition-colors text-sm">Bookmarks</span>
+            <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-brand-primary/60 transition-colors" strokeWidth={1.25} />
+          </button>
+          <button
+            onClick={() => navigate("/journal")}
             className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/[0.02] rounded-2xl group hover:bg-white/5 transition-colors"
           >
             <span className="font-medium text-white/50 group-hover:text-white/80 transition-colors text-sm">Study Journal</span>

@@ -19,7 +19,8 @@ import {
   BookOpen,
   X,
   Loader2,
-  Cloud
+  Cloud,
+  Sparkles
 } from "lucide-react";
 import { mockPlans } from "../data/mockData";
 import { useState, useEffect, useRef } from "react";
@@ -45,8 +46,19 @@ export default function PlanDetail() {
   const [guideModal, setGuideModal] = useState<{ open: boolean; task: string }>({ open: false, task: "" });
   const [completedTasks, setCompletedTasks] = useState<Record<string, string[]>>({});
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
+  const [reflectiveModal, setReflectiveModal] = useState<{ open: boolean; task: string; question: string }>({ open: false, task: "", question: "" });
+  const [journalContent, setJournalContent] = useState("");
+  const [isSavingJournal, setIsSavingJournal] = useState(false);
 
   const isInitialLoadRef = useRef(true);
+
+  const REFLECTION_QUESTIONS = [
+    "What did this passage teach you about love today?",
+    "How can you apply this teaching to your current challenges?",
+    "What part of this reading resonated most with your spirit?",
+    "What is God speaking to you through this specific chapter?",
+    "How does this passage change your perspective on gratitude?"
+  ];
 
   useEffect(() => {
     const plan = mockPlans.find(p => p.id === planId);
@@ -102,11 +114,38 @@ export default function PlanDetail() {
   const toggleTask = (pId: string, task: string) => {
     setCompletedTasks((prev) => {
       const planTasks = prev[pId] || [];
-      const updated = planTasks.includes(task)
-        ? planTasks.filter((t) => t !== task)
-        : [...planTasks, task];
+      const isNewlyCompleted = !planTasks.includes(task);
+      const updated = isNewlyCompleted
+        ? [...planTasks, task]
+        : planTasks.filter((t) => t !== task);
+
+      if (isNewlyCompleted) {
+        const randomQuestion = REFLECTION_QUESTIONS[Math.floor(Math.random() * REFLECTION_QUESTIONS.length)];
+        setReflectiveModal({ open: true, task, question: randomQuestion });
+        setJournalContent("");
+      }
+
       return { ...prev, [pId]: updated };
     });
+  };
+
+  const saveReflection = async () => {
+    if (!user || !journalContent.trim()) return;
+    setIsSavingJournal(true);
+    try {
+      const { journalService } = await import("../services/journalService");
+      await journalService.createEntry({
+        content: journalContent,
+        prompt: reflectiveModal.question,
+        title: `Reflection: ${reflectiveModal.task}`,
+      });
+      setReflectiveModal({ ...reflectiveModal, open: false });
+      setJournalContent("");
+    } catch (error) {
+      console.error("Error saving reflection:", error);
+    } finally {
+      setIsSavingJournal(false);
+    }
   };
 
   const startPlan = (plan: StudyPlan) => {
@@ -419,6 +458,64 @@ export default function PlanDetail() {
           </div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {reflectiveModal.open && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setReflectiveModal({ ...reflectiveModal, open: false })}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              className="bg-[#1C1F26] border border-white/10 rounded-[40px] w-full max-w-sm relative z-10 overflow-hidden shadow-2xl"
+            >
+              <div className="p-8">
+                <div className="flex justify-between items-start mb-6">
+                  <div className="w-12 h-12 bg-brand-primary/10 rounded-2xl flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-brand-primary" />
+                   </div>
+                   <button 
+                     onClick={() => setReflectiveModal({ ...reflectiveModal, open: false })}
+                     className="p-2 bg-white/5 rounded-xl text-white/40 hover:text-white transition-colors"
+                   >
+                     <X className="w-5 h-5" />
+                   </button>
+                 </div>
+                 
+                 <h3 className="text-2xl font-bold mb-2">Daily Reflection</h3>
+                 <p className="text-brand-primary text-[10px] font-black uppercase tracking-[0.2em] mb-6">Task Completed: {reflectiveModal.task}</p>
+                 
+                 <div className="bg-white/[0.03] border border-white/5 p-6 rounded-[32px] mb-6">
+                   <p className="text-white/80 font-medium leading-relaxed italic mb-4">
+                     "{reflectiveModal.question}"
+                   </p>
+                   <textarea
+                     value={journalContent}
+                     onChange={(e) => setJournalContent(e.target.value)}
+                     placeholder="Type your reflection here..."
+                     className="w-full bg-transparent border-none focus:ring-0 text-sm text-white/60 placeholder:text-white/10 resize-none h-32 no-scrollbar"
+                   />
+                 </div>
+                 
+                 <button 
+                  onClick={saveReflection}
+                  disabled={isSavingJournal || !journalContent.trim()}
+                  className="w-full bg-brand-primary text-white font-bold py-4 rounded-2xl shadow-xl shadow-brand-primary/20 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
+                >
+                  {isSavingJournal ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
+                  Save to Journal
+                </button>
+               </div>
+             </motion.div>
+           </div>
+         )}
+       </AnimatePresence>
     </motion.div>
   );
 }

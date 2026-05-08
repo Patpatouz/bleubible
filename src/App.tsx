@@ -29,9 +29,12 @@ const Profile = lazy(() => import('./components/Profile'));
 const PrayerWall = lazy(() => import('./components/PrayerWall'));
 const SharedPlans = lazy(() => import('./components/SharedPlans'));
 const SharedPlanView = lazy(() => import('./components/SharedPlanView'));
+const Journal = lazy(() => import('./components/Journal'));
+const Bookmarks = lazy(() => import('./components/Bookmarks'));
 const PrayerAssistant = lazy(() => import('./components/PrayerAssistant'));
 const MoodAssistant = lazy(() => import('./components/MoodAssistant'));
 const PWABanner = lazy(() => import('./components/PWABanner'));
+const RequireAuth = lazy(() => import('./components/RequireAuth'));
 
 const LoadingFallback = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-dark-bg z-50">
@@ -75,6 +78,7 @@ function Navigation() {
       case '/bible': import('./components/BibleReader'); break;
       case '/plans': import('./components/Plans'); break;
       case '/profile': import('./components/Profile'); break;
+      case '/journal': import('./components/Journal'); break;
     }
   };
 
@@ -137,16 +141,18 @@ export default function App() {
           <Suspense fallback={<LoadingFallback />}>
             <Routes location={location}>
               <Route path="/" element={<PageWrapper><Welcome /></PageWrapper>} />
-              <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
-              <Route path="/bible" element={<PageWrapper><BibleReader /></PageWrapper>} />
-              <Route path="/plans" element={<PageWrapper><Plans /></PageWrapper>} />
-              <Route path="/plans/:planId" element={<PageWrapper><PlanDetail /></PageWrapper>} />
-              <Route path="/plans/shared" element={<PageWrapper><SharedPlans /></PageWrapper>} />
-              <Route path="/plans/shared/:planId" element={<PageWrapper><SharedPlanView /></PageWrapper>} />
-              <Route path="/prayers" element={<PageWrapper><PrayerWall /></PageWrapper>} />
-              <Route path="/profile" element={<PageWrapper><Profile /></PageWrapper>} />
-              <Route path="/assistant/prayer" element={<PageWrapper><PrayerAssistant /></PageWrapper>} />
-              <Route path="/assistant/mood" element={<PageWrapper><MoodAssistant /></PageWrapper>} />
+              <Route path="/dashboard" element={<RequireAuth><PageWrapper><Dashboard /></PageWrapper></RequireAuth>} />
+              <Route path="/bible" element={<RequireAuth><PageWrapper><BibleReader /></PageWrapper></RequireAuth>} />
+              <Route path="/plans" element={<RequireAuth><PageWrapper><Plans /></PageWrapper></RequireAuth>} />
+              <Route path="/plans/:planId" element={<RequireAuth><PageWrapper><PlanDetail /></PageWrapper></RequireAuth>} />
+              <Route path="/plans/shared" element={<RequireAuth><PageWrapper><SharedPlans /></PageWrapper></RequireAuth>} />
+              <Route path="/plans/shared/:planId" element={<RequireAuth><PageWrapper><SharedPlanView /></PageWrapper></RequireAuth>} />
+              <Route path="/journal" element={<RequireAuth><PageWrapper><Journal /></PageWrapper></RequireAuth>} />
+              <Route path="/bookmarks" element={<RequireAuth><PageWrapper><Bookmarks /></PageWrapper></RequireAuth>} />
+              <Route path="/prayers" element={<RequireAuth><PageWrapper><PrayerWall /></PageWrapper></RequireAuth>} />
+              <Route path="/profile" element={<RequireAuth><PageWrapper><Profile /></PageWrapper></RequireAuth>} />
+              <Route path="/assistant/prayer" element={<RequireAuth><PageWrapper><PrayerAssistant /></PageWrapper></RequireAuth>} />
+              <Route path="/assistant/mood" element={<RequireAuth><PageWrapper><MoodAssistant /></PageWrapper></RequireAuth>} />
             </Routes>
           </Suspense>
         </AnimatePresence>

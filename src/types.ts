@@ -34,3 +34,28 @@ export interface StudyPlan {
   tasks: string[];
   icon: string;
 }
+
+export interface JournalEntry {
+  id: string;
+  userId: string;
+  title?: string;
+  content: string;
+  pinnedVerses?: {
+    reference: string;
+    text: string;
+  }[];
+  prompt?: string;
+  createdAt: string;
+}
+
+export interface Bookmark {
+  id: string;
+  userId: string;
+  type: 'verse' | 'chapter';
+  reference: string; // e.g., "John 3:16" or "John 3"
+  text?: string; // Optional for chapters
+  bookId: string;
+  chapterNum: number;
+  verseNum?: number;
+  createdAt: string;
+}

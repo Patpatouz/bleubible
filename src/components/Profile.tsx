@@ -9,8 +9,14 @@ import {
   ChevronRight,
   UserCircle
 } from 'lucide-react';
+import { auth } from '../lib/firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
+  const [user] = useAuthState(auth);
+  const navigate = useNavigate();
+
   const menuItems = [
     { name: 'Account Settings', icon: UserCircle },
     { name: 'Notifications', icon: Bell },
@@ -18,6 +24,19 @@ export default function Profile() {
     { name: 'Security & Privacy', icon: Shield },
     { name: 'Help & Support', icon: HelpCircle },
   ];
+
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut();
+      navigate('/');
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name?.split(' ').map(n => n[0]).join('').toUpperCase() || '??';
+  };
 
   return (
     <motion.div 
@@ -38,12 +57,23 @@ export default function Profile() {
         <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         
         <div className="w-20 h-20 rounded-3xl bg-brand-primary p-0.5 bg-gradient-to-tr from-brand-primary/40 to-brand-secondary/40 mb-5 relative z-10">
-          <div className="w-full h-full rounded-[22px] bg-dark-bg flex items-center justify-center text-2xl font-bold text-white/80">
-            NM
-          </div>
+          {user?.photoURL ? (
+            <img 
+              src={user.photoURL} 
+              alt={user.displayName || 'Profile'} 
+              className="w-full h-full rounded-[22px] object-cover"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-full h-full rounded-[22px] bg-dark-bg flex items-center justify-center text-2xl font-bold text-white/80">
+              {getInitials(user?.displayName || 'User')}
+            </div>
+          )}
         </div>
-        <h2 className="text-xl font-bold mb-1 relative z-10">Nazuwa Mabika</h2>
-        <p className="text-white/20 text-[10px] font-black uppercase tracking-[0.2em] relative z-10">Joined June 2024</p>
+        <h2 className="text-xl font-bold mb-1 relative z-10">{user?.displayName || 'Modern Disciple'}</h2>
+        <p className="text-white/20 text-[10px] font-black uppercase tracking-[0.2em] relative z-10">
+          {user?.email || 'spirit@bleubible.com'}
+        </p>
         
         <div className="flex gap-8 mt-10 relative z-10">
           <div className="text-center">
@@ -80,7 +110,10 @@ export default function Profile() {
           </button>
         ))}
         
-        <button className="flex items-center gap-4 p-5 mt-6 text-red-400/60 font-bold text-sm hover:bg-red-400/5 rounded-3xl transition-all active:scale-[0.98]">
+        <button 
+          onClick={handleSignOut}
+          className="flex items-center gap-4 p-5 mt-6 text-red-400/60 font-bold text-sm hover:bg-red-400/5 rounded-3xl transition-all active:scale-[0.98]"
+        >
           <LogOut className="w-5 h-5" strokeWidth={1.25} />
           <span>Sign Out</span>
         </button>

@@ -86,12 +86,59 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["taskId", "userId", "text", "createdAt"]
+    },
+    "JournalEntry": {
+      "title": "Journal Entry",
+      "description": "A private journal entry with optional pinned verses",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "prompt": { "type": "string" },
+        "pinnedVerses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "reference": { "type": "string" },
+              "text": { "type": "string" }
+            }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "content", "createdAt"]
+    },
+    "Bookmark": {
+      "title": "Bookmark",
+      "description": "A saved verse or chapter",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["verse", "chapter"] },
+        "reference": { "type": "string" },
+        "text": { "type": "string" },
+        "bookId": { "type": "string" },
+        "chapterNum": { "type": "number" },
+        "verseNum": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "reference", "bookId", "chapterNum", "createdAt"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "User",
       "description": "Global user profiles"
+    },
+    "/users/{userId}/journal/{entryId}": {
+      "schema": "JournalEntry",
+      "description": "Personal journal entries for the user"
+    },
+    "/users/{userId}/bookmarks/{bookmarkId}": {
+      "schema": "Bookmark",
+      "description": "User's saved verses and chapters"
     },
     "/prayers/{prayerId}": {
       "schema": "Prayer",
