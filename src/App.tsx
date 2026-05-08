@@ -90,24 +90,24 @@ function Navigation() {
             onTouchStart={() => prefetch(item.path)}
             className={cn(
               "flex flex-col items-center justify-center gap-1 transition-all relative w-20 h-full group",
-              isActive ? "text-brand-primary" : "text-white/30 hover:text-white/60 active:scale-95"
+              isActive ? "text-brand-primary" : "text-white/50 hover:text-white/80 active:scale-95"
             )}
           >
             <div className={cn(
               "p-1.5 rounded-xl transition-all duration-500 flex items-center justify-center",
-              isActive ? "bg-brand-primary/10 ring-1 ring-brand-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]" : "group-hover:bg-white/5"
+              isActive ? "bg-brand-primary/10 ring-1 ring-brand-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]" : "group-hover:bg-white/10"
             )}>
               <item.icon 
                 className={cn(
                   "w-5 h-5 transition-all duration-500",
                   isActive ? "text-brand-primary scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "text-current"
                 )} 
-                strokeWidth={isActive ? 2 : 1.5} 
+                strokeWidth={isActive ? 2 : 1.75} 
               />
             </div>
             <span className={cn(
               "text-[9px] uppercase font-bold tracking-widest transition-all duration-500",
-              isActive ? "text-brand-primary opacity-100" : "opacity-40"
+              isActive ? "text-brand-primary opacity-100" : "opacity-60 group-hover:opacity-100"
             )}>{item.name}</span>
             {isActive && (
               <motion.div 
