@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- USERS ---
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.keys().hasAll(['displayName', 'email', 'createdAt']) &&
+               data.keys().hasOnly(['displayName', 'email', 'createdAt', 'photoURL']) &&
+               data.displayName is string && data.displayName.size() <= 100 &&
+               data.email is string && data.email.size() <= 100 &&
+               data.createdAt == request.time;
+      }
+      allow get: if isSignedIn();
+      allow list: if false; 
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().email == existing().email; 
+                    
+      match /settings/{settingId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // --- PRAYERS ---
+    match /prayers/{prayerId} {
+      function isValidPrayer(data) {
+        return data.keys().hasAll(['userId', 'userName', 'text', 'createdAt', 'prayedCount']) &&
+               data.keys().hasOnly(['userId', 'userName', 'text', 'createdAt', 'prayedCount', 'userPhoto', 'isAnonymized']) &&
+               data.userId == request.auth.uid &&
+               data.text is string && data.text.size() <= 2000 &&
+               data.createdAt == request.time &&
+               data.prayedCount == 0;
+      }
+
+      allow list: if true;
+      allow get: if true;
+      allow create: if isVerified() && isValidId(prayerId) && isValidPrayer(incoming());
+      
+      allow update: if isVerified() && (
+        (incoming().diff(existing()).affectedKeys().hasOnly(['prayedCount']) && 
+         incoming().prayedCount == existing().prayedCount + 1) ||
+        (isOwner(existing().userId) && 
+         incoming().diff(existing()).affectedKeys().hasOnly(['text']) &&
+         incoming().text is string && incoming().text.size() <= 2000)
+      );
+      
+      allow delete: if isOwner(existing().userId);
+
+      match /prays/{userId} {
+        function isValidPray(data) {
+          return data.keys().hasAll(['userId', 'createdAt']) &&
+                 data.keys().hasOnly(['userId', 'createdAt', 'userName', 'userPhoto']) &&
+                 data.userId == request.auth.uid &&
+                 data.createdAt == request.time;
+        }
+        allow get: if isSignedIn();
+        allow list: if isSignedIn();
+        allow create: if isOwner(userId) && isValidPray(incoming()) && 
+                      exists(/databases/$(database)/documents/prayers/$(prayerId));
+      }
+    }
+
+    // --- SHARED PLANS ---
+    match /sharedPlans/{planId} {
+      function isValidSharedPlan(data) {
+        return data.keys().hasAll(['basePlanId', 'title', 'creatorId', 'createdAt']) &&
+               data.keys().hasOnly(['basePlanId', 'title', 'creatorId', 'createdAt', 'inviteCode']) &&
+               data.creatorId == request.auth.uid &&
+               data.createdAt == request.time;
+      }
+      
+      allow get: if isSignedIn();
+      allow list: if isSignedIn(); 
+      allow create: if isVerified() && isValidId(planId) && isValidSharedPlan(incoming());
+      
+      match /members/{userId} {
+        allow get: if isSignedIn();
+        allow list: if isSignedIn();
+        allow create: if isOwner(userId) && incoming().joinedAt == request.time;
+        allow delete: if isOwner(userId) || isOwner(get(/databases/$(database)/documents/sharedPlans/$(planId)).data.creatorId);
+      }
+
+      match /progress/{userId} {
+        allow get: if isSignedIn();
+        allow list: if isSignedIn();
+        allow write: if isOwner(userId) && 
+                     exists(/databases/$(database)/documents/sharedPlans/$(planId)/members/$(request.auth.uid)) &&
+                     incoming().lastActiveAt == request.time;
+      }
+
+      match /comments/{commentId} {
+        allow list, get: if isSignedIn();
+        allow create: if isVerified() && 
+                      exists(/databases/$(database)/documents/sharedPlans/$(planId)/members/$(request.auth.uid)) &&
+                      incoming().userId == request.auth.uid &&
+                      incoming().createdAt == request.time &&
+                      incoming().text is string && incoming().text.size() <= 1000;
+        allow delete: if isOwner(existing().userId);
+      }
+    }
+  }
+}

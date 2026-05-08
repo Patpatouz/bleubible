@@ -1,0 +1,121 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Public profile information for a user",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["displayName", "email", "createdAt"]
+    },
+    "Prayer": {
+      "title": "Prayer Request",
+      "description": "A prayer request posted on the live wall",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "prayedCount": { "type": "number" },
+        "isAnonymized": { "type": "boolean" }
+      },
+      "required": ["userId", "text", "createdAt", "prayedCount"]
+    },
+    "PrayAction": {
+      "title": "Pray Action",
+      "description": "Indicates a user has prayed for a request",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "createdAt"]
+    },
+    "SharedPlan": {
+      "title": "Shared Reading Plan",
+      "description": "An instance of a reading plan shared among friends",
+      "type": "object",
+      "properties": {
+        "basePlanId": { "type": "string" },
+        "title": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "inviteCode": { "type": "string" }
+      },
+      "required": ["basePlanId", "title", "creatorId", "createdAt"]
+    },
+    "PlanMember": {
+      "title": "Plan Member",
+      "description": "A user who has joined a shared plan",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "joinedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "joinedAt"]
+    },
+    "PlanProgress": {
+      "title": "Plan Progress",
+      "description": "Progress tracking for a user in a shared plan",
+      "type": "object",
+      "properties": {
+        "completedTaskIds": { "type": "array", "items": { "type": "string" } },
+        "lastActiveAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["completedTaskIds", "lastActiveAt"]
+    },
+    "PlanComment": {
+      "title": "Plan Comment",
+      "description": "A comment left on a specific task/day in a plan",
+      "type": "object",
+      "properties": {
+        "taskId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["taskId", "userId", "text", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Global user profiles"
+    },
+    "/prayers/{prayerId}": {
+      "schema": "Prayer",
+      "description": "Public prayer requests on the wall"
+    },
+    "/prayers/{prayerId}/prays/{userId}": {
+      "schema": "PrayAction",
+      "description": "Users who prayed for this request"
+    },
+    "/sharedPlans/{planId}": {
+      "schema": "SharedPlan",
+      "description": "Shared reading plan groups"
+    },
+    "/sharedPlans/{planId}/members/{userId}": {
+      "schema": "PlanMember",
+      "description": "Users in the shared plan"
+    },
+    "/sharedPlans/{planId}/progress/{userId}": {
+      "schema": "PlanProgress",
+      "description": "Progress records for each user in the plan"
+    },
+    "/sharedPlans/{planId}/comments/{commentId}": {
+      "schema": "PlanComment",
+      "description": "Discussion comments within a shared plan"
+    }
+  }
+}
