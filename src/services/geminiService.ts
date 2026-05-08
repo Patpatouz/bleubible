@@ -170,6 +170,9 @@ Include:
   /**
    * Generate a daily prayer based on user context or just a general uplifting one
    */
+  /**
+   * Generate a daily prayer based on user context or just a general uplifting one
+   */
   generatePrayer: async (topic?: string): Promise<PrayerResponse> => {
     try {
       const prompt = topic 
@@ -206,6 +209,40 @@ Include:
       return JSON.parse(response.text || "{}") as PrayerResponse;
     } catch (error) {
       console.error("Gemini Generate Prayer Error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Identifies Jesus' speech in a given Bible chapter text.
+   * Returns a list of segments that are Jesus' speech.
+   */
+  detectJesusSpeech: async (reference: string, text: string): Promise<Record<string, string[]>> => {
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `Identify all the words spoken by Jesus in the following Bible text:
+Reference: ${reference}
+Text: ${text}
+
+For each verse number, provide an array of strings representing the exact segments of text that are Jesus' speech. If a whole verse is his speech, include the whole text. If only part of a verse is his speech, include only that part. If no words in a verse are spoken by Jesus, omit that verse.
+
+Return as an object mapping verse numbers (strings) to arrays of speech segments (strings).`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            additionalProperties: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            }
+          }
+        }
+      });
+
+      return JSON.parse(response.text || "{}");
+    } catch (error) {
+      console.error("Gemini Detect Jesus Speech Error:", error);
       throw error;
     }
   }

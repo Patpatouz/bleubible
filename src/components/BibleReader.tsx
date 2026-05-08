@@ -284,6 +284,16 @@ export default function BibleReader() {
   const [studyOpen, setStudyOpen] = useState(false);
   const [studyData, setStudyData] = useState<StudyAidResponse | null>(null);
   const [isStudyLoading, setIsStudyLoading] = useState(false);
+  const [isRedLetterEnabled, setIsRedLetterEnabled] = useState(true);
+  const [jesusSpeech, setJesusSpeech] = useState<Record<string, string[]>>({});
+  const [isDetectingSpeech, setIsDetectingSpeech] = useState(false);
+
+  const NT_BOOK_IDS = [
+    "matthew", "mark", "luke", "john", "acts", "romans", "1corinthians", "2corinthians",
+    "galatians", "ephesians", "philippians", "colossians", "1thessalonians", "2thessalonians",
+    "1timothy", "2timothy", "titus", "philemon", "hebrews", "james", "1peter", "2peter",
+    "1john", "2john", "3john", "jude", "revelation"
+  ];
 
   useEffect(() => {
     if (location.state?.studyMode) {
@@ -534,6 +544,7 @@ export default function BibleReader() {
     async function loadContent() {
       setLoading(true);
       setError(null);
+      setJesusSpeech({}); // Clear previous speech detection
       try {
         const data = await fetchChapter(
           currentBook.id,
@@ -541,6 +552,11 @@ export default function BibleReader() {
           currentTranslation,
         );
         setChapter(data);
+
+        // Detect Jesus' speech if it's New Testament and red letter is enabled
+        if (isRedLetterEnabled && NT_BOOK_IDS.includes(currentBook.id)) {
+          detectSpeech(data);
+        }
 
         if (targetVerseRef.current !== null) {
           const verseToScroll = targetVerseRef.current;
@@ -584,6 +600,58 @@ export default function BibleReader() {
     }
     loadContent();
   }, [currentBook.id, currentChapterNum, currentTranslation]);
+
+  const detectSpeech = async (bibleChapter: Chapter) => {
+    setIsDetectingSpeech(true);
+    try {
+      const fullText = bibleChapter.verses.map(v => `${v.number}. ${v.text}`).join("\n");
+      const reference = `${bibleChapter.bookName} ${bibleChapter.number}`;
+      const result = await geminiService.detectJesusSpeech(reference, fullText);
+      setJesusSpeech(result);
+    } catch (err) {
+      console.error("Speech Detection Error:", err);
+    } finally {
+      setIsDetectingSpeech(false);
+    }
+  };
+
+  const renderVerseContent = (text: string, verseNum: number) => {
+    const segments = jesusSpeech[verseNum.toString()];
+    
+    if (!isRedLetterEnabled || !segments || segments.length === 0) {
+      return <BibleLinker text={text} onNavigate={navigateToVerse} />;
+    }
+
+    // If segments exist, we need to highlight them in red
+    // To keep it simple and robust, we'll use a regex created from the segments
+    // We escape special characters in segments first
+    try {
+      const sortedSegments = [...segments].sort((a, b) => b.length - a.length);
+      const escapedSegments = sortedSegments.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      const combinedRegex = new RegExp(`(${escapedSegments.join('|')})`, 'gi');
+      
+      const parts = text.split(combinedRegex);
+      
+      return (
+        <span className="relative">
+          {parts.map((part, i) => {
+            const isJesusSpeech = segments.some(seg => part.toLowerCase().includes(seg.toLowerCase()) || seg.toLowerCase().includes(part.toLowerCase()));
+            if (isJesusSpeech && part.trim().length > 0) {
+              return (
+                <span key={i} className="text-red-500/90 font-medium">
+                  <BibleLinker text={part} onNavigate={navigateToVerse} />
+                </span>
+              );
+            }
+            return <BibleLinker key={i} text={part} onNavigate={navigateToVerse} />;
+          })}
+        </span>
+      );
+    } catch (e) {
+      // Fallback if regex fails
+      return <BibleLinker text={text} onNavigate={navigateToVerse} className="text-red-500/90" />;
+    }
+  };
 
   const selectBook = (book: BibleBook) => {
     setCurrentBook(book);
@@ -936,7 +1004,7 @@ export default function BibleReader() {
                             highlightColor && !isActive ? highlightColor : "",
                           )}
                         >
-                          {renderVerseText(verse.text)}
+                          {renderVerseContent(verse.text, verse.number)}
                           <span className="inline-block ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Volume2 className="w-3 h-3 inline text-brand-primary/40" strokeWidth={1.25} />
                           </span>
