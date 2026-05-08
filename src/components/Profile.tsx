@@ -6,6 +6,7 @@ import {
   Shield, 
   HelpCircle, 
   LogOut,
+  LogIn,
   ChevronRight,
   UserCircle
 } from 'lucide-react';
@@ -110,13 +111,23 @@ export default function Profile() {
           </button>
         ))}
         
-        <button 
-          onClick={handleSignOut}
-          className="flex items-center gap-4 p-5 mt-6 text-red-400/60 font-bold text-sm hover:bg-red-400/5 rounded-3xl transition-all active:scale-[0.98]"
-        >
-          <LogOut className="w-5 h-5" strokeWidth={1.25} />
-          <span>Sign Out</span>
-        </button>
+        {user ? (
+          <button 
+            onClick={handleSignOut}
+            className="flex items-center gap-4 p-5 mt-6 text-red-400/60 font-bold text-sm hover:bg-red-400/5 rounded-3xl transition-all active:scale-[0.98]"
+          >
+            <LogOut className="w-5 h-5" strokeWidth={1.25} />
+            <span>Sign Out</span>
+          </button>
+        ) : (
+          <button 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-4 p-5 mt-6 text-brand-primary font-bold text-sm bg-brand-primary/10 border border-brand-primary/20 rounded-3xl transition-all active:scale-[0.98]"
+          >
+            <LogIn className="w-5 h-5" strokeWidth={1.25} />
+            <span>Sign In for Backup</span>
+          </button>
+        )}
       </section>
     </motion.div>
   );

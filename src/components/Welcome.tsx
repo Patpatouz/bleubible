@@ -81,24 +81,20 @@ export default function Welcome() {
             </motion.p>
           )}
           <button 
-            onClick={handleSignIn}
-            disabled={isSigningIn || loading}
-            className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white font-bold py-5 rounded-2xl transition-all active:scale-95 shadow-2xl shadow-brand-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+            onClick={() => navigate('/bible')}
+            className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white font-bold py-5 rounded-2xl transition-all active:scale-95 shadow-2xl shadow-brand-primary/20 flex items-center justify-center gap-3"
           >
-            {isSigningIn || (loading && !user) ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <LogIn className="w-5 h-5" />
-            )}
-            {isSigningIn ? 'Signing in...' : 'Get Started with Google'}
+            <BookOpen className="w-5 h-5" />
+            Start Reading
           </button>
           
           <button 
             onClick={handleSignIn}
             disabled={isSigningIn || loading}
-            className="text-white/20 text-xs font-black uppercase tracking-widest py-3 hover:text-brand-primary transition-colors disabled:opacity-30"
+            className="text-white/40 text-[10px] font-black uppercase tracking-widest py-3 hover:text-brand-primary transition-colors disabled:opacity-30 flex items-center justify-center gap-2"
           >
-            Already have an account? <span className="text-brand-primary/80 underline underline-offset-4 decoration-brand-primary/20">Sign in</span>
+            {isSigningIn ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogIn className="w-3 h-3" />}
+            Sign in for personalized experience
           </button>
         </div>
       </motion.div>
