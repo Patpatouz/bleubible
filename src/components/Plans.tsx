@@ -142,7 +142,7 @@ export default function Plans() {
   const categories = ["All", "Beginner", "Growth", "Deep Study"];
 
   return (
-    <div className="p-6 md:max-w-2xl md:mx-auto bg-dark-bg min-h-screen pb-32">
+    <div className="p-6 md:max-w-2xl md:mx-auto bg-app-bg min-h-screen pb-32">
       <AnimatePresence mode="wait">
         <motion.div
           key="list"

@@ -18,6 +18,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { cn } from './lib/utils';
+import { ThemeProvider, useTheme } from './lib/ThemeContext';
 
 // Lazy load pages for performance
 const Welcome = lazy(() => import('./components/Welcome'));
@@ -36,10 +37,10 @@ const MoodAssistant = lazy(() => import('./components/MoodAssistant'));
 const PWABanner = lazy(() => import('./components/PWABanner'));
 
 const LoadingFallback = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-dark-bg z-50">
+  <div className="fixed inset-0 flex items-center justify-center bg-app-bg z-50">
     <div className="flex flex-col items-center gap-4">
       <div className="w-12 h-12 rounded-full border-t-2 border-brand-primary animate-spin" />
-      <p className="text-[10px] font-black uppercase tracking-widest text-white/30 animate-pulse">Loading App</p>
+      <p className="text-[10px] font-black uppercase tracking-widest text-app-text/30 animate-pulse">Loading App</p>
     </div>
   </div>
 );
@@ -82,7 +83,7 @@ function Navigation() {
   };
 
   return (
-    <nav id="bottom-nav" className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-3xl border-t border-white/5 flex items-center justify-around px-2 z-50 shadow-[0_-20px_60px_rgba(0,0,0,0.9)]">
+    <nav id="bottom-nav" className="fixed bottom-0 left-0 right-0 bg-app-bg/80 backdrop-blur-3xl border-t border-app-border flex items-center justify-around px-2 z-50 shadow-[0_-20px_60px_rgba(0,0,0,0.1)]">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path || (item.path === '/plans' && location.pathname.startsWith('/plans'));
         return (
@@ -93,12 +94,12 @@ function Navigation() {
             onTouchStart={() => prefetch(item.path)}
             className={cn(
               "flex flex-col items-center justify-center gap-1 transition-all relative w-20 h-full group",
-              isActive ? "text-brand-primary" : "text-white/50 hover:text-white/80 active:scale-95"
+              isActive ? "text-brand-primary" : "text-app-text/50 hover:text-app-text/80 active:scale-95"
             )}
           >
             <div className={cn(
               "p-1.5 rounded-xl transition-all duration-500 flex items-center justify-center",
-              isActive ? "bg-brand-primary/10 ring-1 ring-brand-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]" : "group-hover:bg-white/10"
+              isActive ? "bg-brand-primary/10 ring-1 ring-brand-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]" : "group-hover:bg-app-text/10"
             )}>
               <item.icon 
                 className={cn(
@@ -125,11 +126,11 @@ function Navigation() {
   );
 }
 
-export default function App() {
+function AppContent() {
   const location = useLocation();
 
   return (
-    <div className="relative min-h-screen bg-dark-bg text-[#E2E8F0] overflow-x-hidden transition-colors duration-500">
+    <div className="relative min-h-screen bg-app-bg text-app-text overflow-x-hidden transition-colors duration-500">
       <div className="immersive-bg">
         <div className="immersive-blur-1" />
         <div className="immersive-blur-2" />
@@ -159,6 +160,16 @@ export default function App() {
       <Navigation />
       <PWABanner />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 

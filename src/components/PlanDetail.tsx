@@ -162,14 +162,14 @@ export default function PlanDetail() {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="pb-32 min-h-screen bg-dark-bg p-6 md:max-w-2xl md:mx-auto"
+      className="pb-32 min-h-screen bg-app-bg p-6 md:max-w-2xl md:mx-auto"
     >
       {/* Detail Header */}
-      <header className="flex justify-between items-center mb-8 sticky top-0 z-30 pt-4 bg-dark-bg/80 backdrop-blur-xl pb-2">
+      <header className="flex justify-between items-center mb-8 sticky top-0 z-30 pt-4 bg-app-bg/80 backdrop-blur-xl pb-2">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/5 rounded-xl text-white/40 hover:text-white transition-colors"
+            className="w-10 h-10 flex items-center justify-center bg-app-surface border border-app-border rounded-xl text-app-text/40 hover:text-app-text transition-colors"
           >
             <ChevronLeft className="w-5 h-5" strokeWidth={1.25} />
           </button>

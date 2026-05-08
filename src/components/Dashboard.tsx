@@ -125,10 +125,10 @@ export default function Dashboard() {
           <h1 className="text-2xl font-semibold flex items-center gap-2">
             Good Morning 👋
           </h1>
-          <p className="text-white/50 text-sm">Let's spend time in the Word.</p>
+          <p className="text-app-text/50 text-sm">Let's spend time in the Word.</p>
         </div>
-        <button className="p-3 bg-white/5 rounded-full hover:bg-white/10 transition-colors border border-white/5 active:scale-95">
-          <Bell className="w-5 h-5 text-white/80" strokeWidth={1.25} />
+        <button className="p-3 bg-app-surface rounded-full hover:bg-app-text/10 transition-colors border border-app-border active:scale-95">
+          <Bell className="w-5 h-5 text-app-text/80" strokeWidth={1.25} />
         </button>
       </header>
 
@@ -171,11 +171,11 @@ export default function Dashboard() {
             <h3 className="font-bold text-xl mb-0.5">
               {lastBook.name} {lastChapterNum}
             </h3>
-            <p className="text-white/30 text-xs mb-3 font-medium uppercase tracking-wider">
+            <p className="text-app-text/30 text-xs mb-3 font-medium uppercase tracking-wider">
               Continue reading where you left off
             </p>
 
-            <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+            <div className="w-full bg-app-text/5 h-1 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{
@@ -282,7 +282,7 @@ export default function Dashboard() {
           <Quote className="absolute -top-4 -right-4 w-32 h-32 text-brand-primary/5 -rotate-12 group-hover:text-brand-primary/10 transition-colors" strokeWidth={1} />
 
           <blockquote className="relative z-10">
-            <p className="text-lg font-medium leading-relaxed italic mb-8 text-white/70 font-serif group-hover:text-white transition-colors">
+            <p className="text-lg font-medium leading-relaxed italic mb-8 text-app-text/70 font-serif group-hover:text-app-text transition-colors">
               "{verseOfTheDay.text}"
             </p>
             <footer className="flex justify-between items-end">
@@ -294,7 +294,7 @@ export default function Dashboard() {
                     strokeWidth={1.25} 
                   />
                 </p>
-                <p className="text-white/20 text-[9px] uppercase font-bold tracking-widest mt-1">
+                <p className="text-app-text/20 text-[9px] uppercase font-bold tracking-widest mt-1">
                   {verseOfTheDay.author}
                 </p>
               </div>
@@ -304,10 +304,10 @@ export default function Dashboard() {
                   toggleBookmark();
                 }}
                 className={cn(
-                  "relative z-20 flex items-center justify-center w-11 h-11 border rounded-2xl transition-all",
+                  "relative z-20 flex items-center justify-center w-11 h-11 border rounded-2xl transition-all shadow-sm",
                   isBookmarked
                     ? "bg-brand-primary text-white border-brand-primary shadow-[0_4px_20px_rgba(245,158,11,0.3)]"
-                    : "bg-white/5 border-white/5 text-white/40 hover:text-white hover:bg-white/10",
+                    : "bg-app-surface border-app-border text-app-text/40 hover:text-app-text hover:bg-app-text/10",
                 )}
               >
                 <Bookmark
@@ -330,27 +330,27 @@ export default function Dashboard() {
           <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Active Now</span>
         </div>
         
-        <div className="bg-[#1C1F26]/30 border border-white/5 rounded-[32px] p-6">
+        <div className="bg-app-surface border border-app-border rounded-[32px] p-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-brand-primary">
                 <Users className="w-4 h-4" />
                 <span className="text-xl font-black">{prayerCount || "0"}</span>
               </div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20 uppercase">Total Prayers</p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-app-text/20 uppercase">Total Prayers</p>
             </div>
-            <div className="space-y-1 border-l border-white/5 pl-4">
+            <div className="space-y-1 border-l border-app-border pl-4">
               <div className="flex items-center gap-2 text-blue-400">
                 <Activity className="w-4 h-4" />
                 <span className="text-xl font-black">2.4k</span>
               </div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20 uppercase">Global Activity</p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-app-text/20 uppercase">Global Activity</p>
             </div>
           </div>
           
-          <div className="mt-6 pt-6 border-t border-white/5">
+          <div className="mt-6 pt-6 border-t border-app-border">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Recent Members</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-app-text/40">Recent Members</span>
               <button 
                 onClick={() => navigate("/plans/shared")}
                 className="text-brand-primary text-[10px] font-bold"

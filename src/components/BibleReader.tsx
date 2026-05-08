@@ -904,10 +904,10 @@ export default function BibleReader() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-dark-bg text-[#E2E8F0] transition-colors duration-500"
+      className="min-h-screen bg-app-bg text-app-text transition-colors duration-500"
     >
       {/* Reader Header */}
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-dark-bg/80 backdrop-blur-md flex items-center justify-between px-4 z-40 border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 h-16 bg-app-bg/80 backdrop-blur-md flex items-center justify-between px-4 z-40 border-b border-app-border">
         <button
           onClick={() => navigate("/dashboard")}
           className="p-2 -ml-1 text-white/40 hover:text-white active:scale-90 transition-all"

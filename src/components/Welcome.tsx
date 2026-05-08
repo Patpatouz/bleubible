@@ -39,7 +39,7 @@ export default function Welcome() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="flex flex-col items-center justify-center min-h-screen px-8 text-center bg-dark-bg text-white"
+      className="flex flex-col items-center justify-center min-h-screen px-8 text-center bg-app-bg text-app-text"
     >
       <div className="relative mb-14">
         <motion.div 
@@ -60,13 +60,13 @@ export default function Welcome() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.6 }}
       >
-        <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-3 text-white/20">Welcome to</h2>
+        <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-3 text-app-text/20">Welcome to</h2>
         <h1 className="text-5xl font-bold tracking-tight mb-8">
-          <span className="text-white">Bleu</span>
+          <span className="text-app-text">Bleu</span>
           <span className="text-brand-primary">Bible</span>
         </h1>
         
-        <p className="text-white/30 text-base mb-16 leading-relaxed max-w-[280px] font-medium">
+        <p className="text-app-text/30 text-base mb-16 leading-relaxed max-w-[280px] font-medium">
           Your spiritual companion for a modern life of faith and wisdom.
         </p>
 
@@ -91,7 +91,7 @@ export default function Welcome() {
           <button 
             onClick={handleSignIn}
             disabled={isSigningIn || loading}
-            className="text-white/40 text-[10px] font-black uppercase tracking-widest py-3 hover:text-brand-primary transition-colors disabled:opacity-30 flex items-center justify-center gap-2"
+            className="text-app-text/40 text-[10px] font-black uppercase tracking-widest py-3 hover:text-brand-primary transition-colors disabled:opacity-30 flex items-center justify-center gap-2"
           >
             {isSigningIn ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogIn className="w-3 h-3" />}
             Sign in for personalized experience
@@ -101,8 +101,8 @@ export default function Welcome() {
 
       <div className="mt-12 flex gap-2">
         <div className="w-6 h-1.5 rounded-full bg-brand-primary" />
-        <div className="w-2 h-1.5 rounded-full bg-white/20" />
-        <div className="w-2 h-1.5 rounded-full bg-white/20" />
+        <div className="w-2 h-1.5 rounded-full bg-app-text/20" />
+        <div className="w-2 h-1.5 rounded-full bg-app-text/20" />
       </div>
     </motion.div>
   );
