@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -42,7 +42,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-const PageWrapper = ({ children }: { children: React.ReactNode }) => (
+const PageWrapper = ({ children }: { children: ReactNode }) => (
   <motion.div
     initial={{ opacity: 0, y: 10, scale: 0.99 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -79,7 +79,7 @@ function Navigation() {
   };
 
   return (
-    <nav id="bottom-nav" className="fixed bottom-0 left-0 right-0 bg-dark-navbar/80 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-4 z-50">
+    <nav id="bottom-nav" className="fixed bottom-0 left-0 right-0 bg-[#090A0C]/90 backdrop-blur-3xl border-t border-white/10 flex items-center justify-around px-2 z-50 shadow-[0_-20px_60px_rgba(0,0,0,0.8)]">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path || (item.path === '/plans' && location.pathname.startsWith('/plans'));
         return (
@@ -89,19 +89,30 @@ function Navigation() {
             onMouseEnter={() => prefetch(item.path)}
             onTouchStart={() => prefetch(item.path)}
             className={cn(
-              "flex flex-col items-center gap-1.5 transition-all relative",
-              isActive ? "text-brand-primary" : "text-white/20 hover:text-white/40 active:scale-90"
+              "flex flex-col items-center justify-center gap-1 transition-all relative w-20 h-full group",
+              isActive ? "text-brand-primary" : "text-white/30 hover:text-white/60 active:scale-95"
             )}
           >
-            <item.icon className="w-6 h-6 text-current" strokeWidth={1.25} />
+            <div className={cn(
+              "p-1.5 rounded-xl transition-all duration-500 flex items-center justify-center",
+              isActive ? "bg-brand-primary/10 ring-1 ring-brand-primary/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]" : "group-hover:bg-white/5"
+            )}>
+              <item.icon 
+                className={cn(
+                  "w-5 h-5 transition-all duration-500",
+                  isActive ? "text-brand-primary scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "text-current"
+                )} 
+                strokeWidth={isActive ? 2 : 1.5} 
+              />
+            </div>
             <span className={cn(
-              "text-[9px] uppercase font-black tracking-[0.2em] transition-all",
-              isActive ? "opacity-100" : "opacity-40"
+              "text-[9px] uppercase font-bold tracking-widest transition-all duration-500",
+              isActive ? "text-brand-primary opacity-100" : "opacity-40"
             )}>{item.name}</span>
             {isActive && (
               <motion.div 
                 layoutId="nav-dot"
-                className="w-1 h-1 rounded-full bg-brand-primary absolute -bottom-3"
+                className="w-8 h-[2px] rounded-full bg-brand-primary absolute bottom-1 shadow-[0_0_10px_rgba(245,158,11,0.8)]"
               />
             )}
           </button>
@@ -124,7 +135,7 @@ export default function App() {
       <main className="relative z-10 min-h-screen pb-20">
         <AnimatePresence mode="wait">
           <Suspense fallback={<LoadingFallback />}>
-            <Routes location={location} key={location.pathname}>
+            <Routes location={location}>
               <Route path="/" element={<PageWrapper><Welcome /></PageWrapper>} />
               <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
               <Route path="/bible" element={<PageWrapper><BibleReader /></PageWrapper>} />

@@ -3,7 +3,7 @@ import { cn } from "../lib/utils";
 
 interface BibleLinkerProps {
   text: string;
-  onNavigate: (bookName: string, chapter: number, verse: number) => void;
+  onNavigate: (bookName: string, chapter: number, verse?: number) => void;
   className?: string;
   linkClassName?: string;
 }

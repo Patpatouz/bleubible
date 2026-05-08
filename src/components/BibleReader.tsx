@@ -643,7 +643,7 @@ export default function BibleReader() {
                 </span>
               );
             }
-            return <BibleLinker key={i} text={part} onNavigate={navigateToVerse} />;
+            return <span key={i}><BibleLinker text={part} onNavigate={navigateToVerse} /></span>;
           })}
         </span>
       );
