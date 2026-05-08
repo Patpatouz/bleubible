@@ -17,6 +17,12 @@
   body {
     @apply bg-dark-bg text-[#E2E8F0] font-sans min-h-screen;
     -webkit-tap-highlight-color: transparent;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  #bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(5rem + env(safe-area-inset-bottom));
   }
 
   /* Custom scrollbar for a clean mobile-like feel on desktop */

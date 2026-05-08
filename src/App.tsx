@@ -47,7 +47,7 @@ function Navigation() {
   if (hideNav) return null;
 
   return (
-    <nav id="bottom-nav" className="fixed bottom-0 left-0 right-0 h-20 bg-dark-navbar/80 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-4 z-50">
+    <nav id="bottom-nav" className="fixed bottom-0 left-0 right-0 bg-dark-navbar/80 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-4 z-50">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path || (item.path === '/plans' && location.pathname.startsWith('/plans'));
         return (
