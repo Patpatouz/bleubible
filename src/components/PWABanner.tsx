@@ -3,11 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { RefreshCw, X } from 'lucide-react';
 
 export default function PWABanner() {
-  const {
-    offlineReady: [offlineReady, setOfflineReady],
-    needUpdate: [needUpdate, setNeedUpdate],
-    updateServiceWorker,
-  } = useRegisterSW({
+  const rs = useRegisterSW({
     onRegistered(r) {
       console.log('SW Registered: ' + r);
     },
@@ -16,9 +12,14 @@ export default function PWABanner() {
     },
   });
 
+  // Handle potential undefined hook result gracefully
+  const [offlineReady, setOfflineReady] = rs?.offlineReady ?? [false, () => {}];
+  const [needUpdate, setNeedUpdate] = rs?.needUpdate ?? [false, () => {}];
+  const updateServiceWorker = rs?.updateServiceWorker;
+
   const close = () => {
-    setOfflineReady(false);
-    setNeedUpdate(false);
+    if (setOfflineReady) setOfflineReady(false);
+    if (setNeedUpdate) setNeedUpdate(false);
   };
 
   return (
@@ -51,7 +52,7 @@ export default function PWABanner() {
               </button>
             </div>
             
-            {needUpdate && (
+            {needUpdate && updateServiceWorker && (
               <button
                 onClick={() => updateServiceWorker(true)}
                 className="w-full h-10 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-brand-primary/20"
