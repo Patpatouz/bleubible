@@ -899,6 +899,26 @@ export default function BibleReader() {
     />
   );
 
+  const HighlightText = ({ text, highlight }: { text: string; highlight: string }) => {
+    if (!highlight.trim()) return <>{text}</>;
+    // Escape special regex characters to avoid crashes
+    const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const parts = text.split(new RegExp(`(${escapedHighlight})`, "gi"));
+    return (
+      <>
+        {parts.map((part, i) =>
+          part.toLowerCase() === highlight.toLowerCase() ? (
+            <span key={i} className="text-brand-primary font-bold bg-brand-primary/15 px-0.5 rounded shadow-sm">
+              {part}
+            </span>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </>
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1080,6 +1100,7 @@ export default function BibleReader() {
                     const highlightColor = highlights[highlightKey];
                     const noteKey = `${currentBook.id}-${currentChapterNum}-${verse.number}`;
                     const hasNote = !!notes[noteKey];
+                    const isVerseBookmarked = isBookmarked('verse', verse.number);
 
                     return (
                       <span
@@ -1098,8 +1119,17 @@ export default function BibleReader() {
                               : "text-brand-primary/40",
                           )}
                         >
-                          <span className="block text-right w-full">
+                          <span className="block text-right w-full relative">
                             {verse.number}
+                            {isVerseBookmarked && (
+                              <motion.div 
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute -top-1 -right-1"
+                              >
+                                <Bookmark className="w-2.5 h-2.5 fill-brand-primary text-brand-primary" />
+                              </motion.div>
+                            )}
                           </span>
                           <div className="flex flex-col items-end gap-2 mt-1">
                             <button
@@ -1601,19 +1631,31 @@ export default function BibleReader() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed inset-0 z-[70] bg-dark-bg flex flex-col p-6 overflow-hidden"
+            className="fixed inset-0 z-[70] bg-app-bg flex flex-col p-6 overflow-hidden"
           >
             <div className="flex items-center gap-4 mb-8">
-              <form onSubmit={handleSearch} className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+              <form onSubmit={handleSearch} className="flex-1 relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-app-text/20 group-focus-within:text-brand-primary/50 transition-colors" />
                 <input
                   autoFocus
                   type="text"
                   placeholder="Search keywords or verses..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-brand-primary/40 focus:bg-white/10 transition-all text-lg"
+                  className="w-full bg-app-surface border border-app-border rounded-2xl py-4 pl-12 pr-12 outline-none focus:border-brand-primary/40 focus:bg-app-surface/80 transition-all text-lg font-medium shadow-inner"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSearchResults([]);
+                    }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-app-text/5 hover:bg-app-text/10 text-app-text/40 hover:text-app-text/60 transition-all"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </form>
               <button
                 onClick={() => {
@@ -1621,7 +1663,7 @@ export default function BibleReader() {
                   setSearchQuery("");
                   setSearchResults([]);
                 }}
-                className="p-2 text-white/40 hover:text-white transition-colors"
+                className="p-3 bg-app-surface border border-app-border rounded-2xl text-app-text/40 hover:text-red-500 hover:border-red-500/20 transition-all active:scale-95 shadow-sm"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -1630,43 +1672,67 @@ export default function BibleReader() {
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
               {searchLoading ? (
                 <div className="flex flex-col items-center justify-center p-20 gap-4 opacity-50">
-                  <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
-                  <p className="text-xs font-bold uppercase tracking-widest">
+                  <div className="relative">
+                    <Loader2 className="w-12 h-12 animate-spin text-brand-primary/40" />
+                    <Search className="absolute inset-0 m-auto w-5 h-5 text-brand-primary animate-pulse" />
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-app-text/30">
                     Searching the Word
                   </p>
                 </div>
               ) : searchResults.length > 0 ? (
-                <div className="flex flex-col gap-4">
-                  <p className="text-xs font-bold uppercase tracking-widest text-brand-primary/60 mb-2">
-                    Found {searchResults.length} results
-                  </p>
+                <div className="flex flex-col gap-3 pb-20">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary/60">
+                      Found {searchResults.length} results
+                    </p>
+                    <div className="h-px flex-1 bg-brand-primary/10 ml-4" />
+                  </div>
                   {searchResults.map((result, idx) => (
-                    <button
+                    <motion.button
                       key={idx}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.03 }}
                       onClick={() =>
                         navigateToVerse(result.book_name, result.chapter, result.verse)
                       }
-                      className="text-left bg-white/5 border border-white/5 p-5 rounded-3xl hover:bg-white/10 transition-all group"
+                      className="text-left bg-app-surface border border-app-border p-5 rounded-[28px] hover:border-brand-primary/30 hover:bg-app-surface/80 transition-all group relative overflow-hidden"
                     >
-                      <h4 className="font-bold text-brand-primary mb-2 group-hover:translate-x-1 transition-transform flex items-baseline gap-1">
-                        {result.book_name} {result.chapter}:<span className="text-xl font-black">{result.verse}</span>
-                      </h4>
-                      <p className="text-sm text-white/70 leading-relaxed font-serif italic">
-                        "{result.text.trim()}"
-                      </p>
-                    </button>
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-brand-primary/10 transition-colors" />
+                      
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-bold text-brand-primary flex items-baseline gap-1 group-hover:translate-x-1 transition-transform">
+                            {result.book_name} {result.chapter}:<span className="text-xl font-black">{result.verse}</span>
+                          </h4>
+                          <ChevronRight className="w-4 h-4 text-app-text/10 group-hover:text-brand-primary/40 transition-colors" />
+                        </div>
+                        <p className="text-sm text-app-text/70 leading-relaxed font-serif italic border-l-2 border-brand-primary/10 pl-3">
+                          "<HighlightText text={result.text.trim()} highlight={searchQuery} />"
+                        </p>
+                      </div>
+                    </motion.button>
                   ))}
                 </div>
               ) : searchQuery && !searchLoading ? (
-                <div className="text-center p-20 text-white/40">
-                  <p>No results found for "{searchQuery}"</p>
+                <div className="text-center p-20 flex flex-col items-center">
+                  <div className="w-20 h-20 bg-app-surface border border-app-border rounded-full flex items-center justify-center mb-6 text-app-text/10">
+                    <Search className="w-10 h-10" />
+                  </div>
+                  <p className="text-app-text/40 font-medium">No results found for "{searchQuery}"</p>
+                  <p className="text-xs text-app-text/20 mt-2">Try different keywords or verify the spelling.</p>
                 </div>
               ) : (
-                <div className="text-center p-20 text-white/20">
-                  <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                  <p className="max-w-[200px] mx-auto">
-                    Explore wisdom by searching keywords like "love", "faith",
-                    or "peace".
+                <div className="text-center p-20 flex flex-col items-center">
+                  <div className="w-24 h-24 bg-gradient-to-tr from-brand-primary/5 to-brand-secondary/5 rounded-[40px] flex items-center justify-center mb-8 relative">
+                    <BookOpen className="w-12 h-12 text-brand-primary/20" />
+                    <div className="absolute inset-0 border border-brand-primary/10 rounded-[40px] animate-pulse" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-3 tracking-tight">Explore the Scriptures</h3>
+                  <p className="text-sm text-app-text/30 max-w-[240px] leading-relaxed font-medium">
+                    Search by keywords like <span className="text-brand-primary/40 font-bold">"love"</span>, <span className="text-brand-primary/40 font-bold">"faith"</span>,
+                    or <span className="text-brand-primary/40 font-bold">"wisdom"</span>.
                   </p>
                 </div>
               )}

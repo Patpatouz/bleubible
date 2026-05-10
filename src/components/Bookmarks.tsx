@@ -11,7 +11,8 @@ import {
   X,
   History,
   Copy,
-  Check
+  Check,
+  Search
 } from "lucide-react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../lib/firebase";
@@ -21,16 +22,23 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
 
 export default function Bookmarks() {
-  const [user] = useAuthState(auth);
+  const [user, authLoading] = useAuthState(auth);
   const navigate = useNavigate();
   const [bookmarks, setBookmarks] = useState<BookmarkType[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<'all' | 'verse' | 'chapter'>('all');
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      setBookmarks([]);
+      return;
+    }
     loadBookmarks();
-  }, [user]);
+  }, [user, authLoading]);
 
   const loadBookmarks = async () => {
     setLoading(true);
@@ -43,6 +51,13 @@ export default function Bookmarks() {
       setLoading(false);
     }
   };
+
+  const filteredBookmarks = bookmarks.filter(b => {
+    const matchesSearch = b.reference.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (b.text?.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesFilter = filterType === 'all' || b.type === filterType;
+    return matchesSearch && matchesFilter;
+  });
 
   const handleDelete = async (id: string, e: MouseEvent) => {
     e.stopPropagation();
@@ -73,9 +88,9 @@ export default function Bookmarks() {
     });
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-dark-bg">
+      <div className="min-h-screen flex items-center justify-center bg-app-bg">
         <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
       </div>
     );
@@ -100,14 +115,46 @@ export default function Bookmarks() {
         </div>
       </header>
 
+      {/* Search and Filters */}
+      <div className="space-y-6 mb-8">
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-brand-primary transition-colors" />
+          <input 
+            type="text"
+            placeholder="Search in bookmarks..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-brand-primary/40 focus:bg-white/[0.05] transition-all text-sm font-medium"
+          />
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+          {(['all', 'verse', 'chapter'] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={cn(
+                "px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border",
+                filterType === type 
+                  ? "bg-brand-primary text-white border-brand-primary shadow-lg shadow-brand-primary/20" 
+                  : "bg-white/[0.03] text-white/40 border-white/5 hover:bg-white/10"
+              )}
+            >
+              {type}s
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="space-y-4">
-        {bookmarks.map((bookmark) => (
-          <motion.div
-            layout
-            key={bookmark.id}
-            onClick={() => navigateToChapter(bookmark)}
-            className="bg-[#1C1F26]/50 border border-white/5 p-6 rounded-[32px] cursor-pointer hover:bg-white/[0.03] transition-all group active:scale-[0.99]"
-          >
+        {filteredBookmarks.length > 0 ?
+          filteredBookmarks.map((bookmark) => (
+            <motion.div
+              layout
+              key={bookmark.id}
+              onClick={() => navigateToChapter(bookmark)}
+              className="bg-[#1C1F26]/50 border border-white/5 p-6 rounded-[32px] cursor-pointer hover:bg-white/[0.03] transition-all group active:scale-[0.99]"
+            >
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-3">
                 <div className={cn(
@@ -170,9 +217,18 @@ export default function Bookmarks() {
               </div>
             </div>
           </motion.div>
-        ))}
-
-        {bookmarks.length === 0 && (
+        ))
+        : searchQuery ? (
+          <div className="py-20 text-center flex flex-col items-center">
+            <div className="w-16 h-16 bg-white/[0.02] border border-white/5 rounded-3xl flex items-center justify-center mb-6">
+              <Search className="w-8 h-8 text-white/10" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">No matching bookmarks</h3>
+            <p className="text-white/30 text-sm max-w-xs mx-auto">
+              Try a different keyword or filter.
+            </p>
+          </div>
+        ) : (
           <div className="py-20 text-center">
             <div className="w-20 h-20 bg-white/5 rounded-[40px] flex items-center justify-center mx-auto mb-6">
               <Bookmark className="w-10 h-10 text-white/10" />

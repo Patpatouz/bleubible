@@ -27,6 +27,7 @@ const BibleReader = lazy(() => import('./components/BibleReader'));
 const Plans = lazy(() => import('./components/Plans'));
 const PlanDetail = lazy(() => import('./components/PlanDetail'));
 const Profile = lazy(() => import('./components/Profile'));
+const SettingsPage = lazy(() => import('./components/Settings'));
 const PrayerWall = lazy(() => import('./components/PrayerWall'));
 const SharedPlans = lazy(() => import('./components/SharedPlans'));
 const SharedPlanView = lazy(() => import('./components/SharedPlanView'));
@@ -150,6 +151,7 @@ function AppContent() {
               <Route path="/journal" element={<PageWrapper><Journal /></PageWrapper>} />
               <Route path="/bookmarks" element={<PageWrapper><Bookmarks /></PageWrapper>} />
               <Route path="/prayers" element={<PageWrapper><PrayerWall /></PageWrapper>} />
+              <Route path="/settings" element={<PageWrapper><SettingsPage /></PageWrapper>} />
               <Route path="/profile" element={<PageWrapper><Profile /></PageWrapper>} />
               <Route path="/assistant/prayer" element={<PageWrapper><PrayerAssistant /></PageWrapper>} />
               <Route path="/assistant/mood" element={<PageWrapper><MoodAssistant /></PageWrapper>} />

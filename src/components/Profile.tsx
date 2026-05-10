@@ -25,6 +25,7 @@ export default function Profile() {
 
   const menuItems = [
     { name: 'Dark Mode', icon: theme === 'dark' ? Moon : Sun, action: toggleTheme, value: theme === 'dark' },
+    { name: 'App Settings', icon: Settings, action: () => navigate('/settings') },
     { name: 'Account Settings', icon: UserCircle },
     { name: 'Notifications', icon: Bell },
     { name: 'My Favorites', icon: Heart },
@@ -54,7 +55,10 @@ export default function Profile() {
     >
       <header className="flex justify-between items-center mb-8 px-1">
         <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
-        <button className="p-2.5 bg-app-surface border border-app-border rounded-2xl hover:bg-app-surface/80 transition-colors">
+        <button 
+          onClick={() => navigate('/settings')}
+          className="p-2.5 bg-app-surface border border-app-border rounded-2xl hover:bg-app-surface/80 transition-colors"
+        >
           <Settings className="w-5 h-5 text-app-text/30" strokeWidth={1.25} />
         </button>
       </header>

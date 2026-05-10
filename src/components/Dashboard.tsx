@@ -17,7 +17,8 @@ import {
   Users,
   User,
   Activity,
-  ArrowUpRight
+  ArrowUpRight,
+  Settings
 } from "lucide-react";
 import { geminiService } from "../services/geminiService";
 import { parseBibleReference, findBook } from "../lib/bibleUtils";
@@ -108,7 +109,7 @@ export default function Dashboard() {
       name: "Bookmarks",
       icon: Bookmark,
       color: "bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/20",
-      path: "/profile",
+      path: "/bookmarks",
     },
   ];
 
@@ -127,9 +128,17 @@ export default function Dashboard() {
           </h1>
           <p className="text-app-text/50 text-sm">Let's spend time in the Word.</p>
         </div>
-        <button className="p-3 bg-app-surface rounded-full hover:bg-app-text/10 transition-colors border border-app-border active:scale-95">
-          <Bell className="w-5 h-5 text-app-text/80" strokeWidth={1.25} />
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => navigate('/settings')}
+            className="p-3 bg-app-surface rounded-full hover:bg-app-text/10 transition-colors border border-app-border active:scale-95"
+          >
+            <Settings className="w-5 h-5 text-app-text/80" strokeWidth={1.25} />
+          </button>
+          <button className="p-3 bg-app-surface rounded-full hover:bg-app-text/10 transition-colors border border-app-border active:scale-95">
+            <Bell className="w-5 h-5 text-app-text/80" strokeWidth={1.25} />
+          </button>
+        </div>
       </header>
 
       {/* Continue Reading Card */}
