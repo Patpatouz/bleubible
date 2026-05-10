@@ -67,6 +67,7 @@ function Navigation() {
     { name: 'Bible', path: '/bible', icon: BookOpen },
     { name: 'Plans', path: '/plans', icon: Calendar },
     { name: 'Profile', path: '/profile', icon: User },
+    { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
   const hideNav = location.pathname === '/' || location.pathname === '/welcome' || location.pathname.startsWith('/assistant');

@@ -1142,6 +1142,19 @@ export default function BibleReader() {
                             >
                               <Sparkles className="w-2.5 h-2.5" />
                             </button>
+                            <button
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 toggleBookmark('verse', verse.number);
+                               }}
+                               className={cn(
+                                 "opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md bg-white/[0.03]",
+                                 isVerseBookmarked ? "text-brand-primary" : "text-brand-primary/40 hover:text-brand-primary"
+                               )}
+                               title="Bookmark Verse"
+                            >
+                              <Bookmark className={cn("w-2.5 h-2.5", isVerseBookmarked ? "fill-current" : "")} />
+                            </button>
                             {hasNote && (
                               <button
                                 onClick={(e) => {

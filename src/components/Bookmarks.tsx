@@ -22,31 +22,48 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
 
 export default function Bookmarks() {
-  const [user, authLoading] = useAuthState(auth);
+  const [user, authLoading, authError] = useAuthState(auth);
   const navigate = useNavigate();
   const [bookmarks, setBookmarks] = useState<BookmarkType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setLocalError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<'all' | 'verse' | 'chapter'>('all');
 
   useEffect(() => {
+    // Timeout to prevent infinite loading if Firebase hangs
+    const timer = setTimeout(() => {
+      if (loading) setLoading(false);
+    }, 8000);
+
     if (authLoading) return;
+    
+    if (authError) {
+      setLocalError("Authentication error. Please try again.");
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       setLoading(false);
       setBookmarks([]);
       return;
     }
     loadBookmarks();
-  }, [user, authLoading]);
+
+    return () => clearTimeout(timer);
+  }, [user, authLoading, authError]);
 
   const loadBookmarks = async () => {
     setLoading(true);
+    setLocalError(null);
     try {
       const data = await bookmarkService.getBookmarks();
       setBookmarks(data);
     } catch (err) {
       console.error(err);
+      setLocalError("Failed to load bookmarks. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -92,6 +109,24 @@ export default function Bookmarks() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-app-bg">
         <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-app-bg p-6 text-center">
+        <div className="w-20 h-20 bg-red-500/10 rounded-[40px] flex items-center justify-center mb-6">
+          <X className="w-10 h-10 text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold mb-2">Something went wrong</h2>
+        <p className="text-white/40 text-sm max-w-xs mb-8">{error}</p>
+        <button 
+          onClick={loadBookmarks}
+          className="bg-brand-primary text-white font-bold px-8 py-3 rounded-2xl shadow-xl shadow-brand-primary/20 active:scale-95 transition-all"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
