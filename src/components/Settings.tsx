@@ -15,15 +15,16 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../lib/ThemeContext';
+import { useReader } from '../lib/ReaderContext';
 import { cn } from '../lib/utils';
 import { useState } from 'react';
 
 export default function Settings() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { fontSize, setFontSize, isRedLetter, setIsRedLetter } = useReader();
   
   const [notifications, setNotifications] = useState(true);
-  const [redLetter, setRedLetter] = useState(true);
   const [animations, setAnimations] = useState(true);
 
   const sections = [
@@ -40,18 +41,21 @@ export default function Settings() {
         },
         { 
           name: 'Typography', 
-          description: 'Change font size and style',
+          description: `Current font size: ${fontSize}px`,
           icon: Type, 
-          type: 'link',
-          path: '/bible' // Redirect to reader to adjust font size
+          type: 'slider',
+          value: fontSize,
+          min: 12,
+          max: 32,
+          onChange: (val: number) => setFontSize(val)
         },
         { 
           name: 'Red Letter Mode', 
           description: 'Highlight the words of Jesus',
           icon: Eye, 
-          action: () => setRedLetter(!redLetter),
+          action: () => setIsRedLetter(!isRedLetter),
           type: 'toggle',
-          value: redLetter
+          value: isRedLetter
         }
       ]
     },
@@ -156,6 +160,34 @@ export default function Settings() {
                       <p className="text-[10px] text-app-text/30 font-medium">{item.description}</p>
                     </div>
                   </div>
+
+                  {item.type === 'slider' && (
+                    <div className="flex flex-col gap-2 w-32 shrink-0">
+                      <div className="flex items-center justify-between">
+                        <button 
+                          onClick={() => item.onChange && item.onChange(Math.max(item.min || 12, (item.value as number) - 1))}
+                          className="w-6 h-6 flex items-center justify-center rounded-full bg-app-text/5 text-app-text/40 hover:text-brand-primary transition-colors"
+                        >
+                          -
+                        </button>
+                        <span className="text-[10px] font-black tabular-nums text-brand-primary">{item.value}px</span>
+                        <button 
+                          onClick={() => item.onChange && item.onChange(Math.min(item.max || 32, (item.value as number) + 1))}
+                          className="w-6 h-6 flex items-center justify-center rounded-full bg-app-text/5 text-app-text/40 hover:text-brand-primary transition-colors"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <input 
+                        type="range"
+                        min={item.min}
+                        max={item.max}
+                        value={item.value as number}
+                        onChange={(e) => item.onChange && item.onChange(parseInt(e.target.value))}
+                        className="w-full h-1 bg-app-text/5 rounded-lg appearance-none cursor-pointer accent-brand-primary"
+                      />
+                    </div>
+                  )}
 
                   {item.type === 'toggle' && (
                     <button 

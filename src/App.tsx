@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { ThemeProvider, useTheme } from './lib/ThemeContext';
+import { ReaderProvider } from './lib/ReaderContext';
 
 // Lazy load pages for performance
 const Welcome = lazy(() => import('./components/Welcome'));
@@ -170,7 +171,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
-        <AppContent />
+        <ReaderProvider>
+          <AppContent />
+        </ReaderProvider>
       </ThemeProvider>
     </BrowserRouter>
   );

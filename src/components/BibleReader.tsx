@@ -25,7 +25,8 @@ import {
   PanelRightClose,
   ArrowUpRight,
   Bookmark,
-  Quote
+  Quote,
+  Eye
 } from "lucide-react";
 import { geminiService, ExplanationResponse, StudyAidResponse } from "../services/geminiService";
 import { fetchChapter, searchBible } from "../services/bibleService";
@@ -35,6 +36,7 @@ import { cn } from "../lib/utils";
 import { BibleLinker } from "./BibleLinker";
 import { findBook, parseBibleReference } from "../lib/bibleUtils";
 import { auth, db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { useReader } from "../lib/ReaderContext";
 import { bookmarkService } from "../services/bookmarkService";
 import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -68,8 +70,8 @@ export default function BibleReader() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user] = useAuthState(auth);
+  const { fontSize, setFontSize, isRedLetter: isRedLetterEnabled, setIsRedLetter: setIsRedLetterEnabled } = useReader();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [fontSize, setFontSize] = useState(18);
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -291,7 +293,6 @@ export default function BibleReader() {
   const [pinSuccess, setPinSuccess] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<any[]>([]);
   const [isBookmarking, setIsBookmarking] = useState(false);
-  const [isRedLetterEnabled, setIsRedLetterEnabled] = useState(true);
   const [jesusSpeech, setJesusSpeech] = useState<Record<string, string[]>>({});
   const [isDetectingSpeech, setIsDetectingSpeech] = useState(false);
 
@@ -332,6 +333,7 @@ export default function BibleReader() {
     }
   }, [studyOpen, chapter, loading]);
 
+  const [showQuickSize, setShowQuickSize] = useState(false);
   const [remindersEnabled, setRemindersEnabled] = useState(() => {
     return localStorage.getItem("bible-reminders-enabled") === "true";
   });
@@ -374,7 +376,6 @@ export default function BibleReader() {
           if (data.lastVerseNum) {
             targetVerseRef.current = data.lastVerseNum;
           }
-          if (data.fontSize) setFontSize(data.fontSize);
           if (data.highlights) setHighlights(data.highlights);
           if (data.notes) setNotes(data.notes);
           if (data.remindersEnabled !== undefined) setRemindersEnabled(data.remindersEnabled);
@@ -402,7 +403,6 @@ export default function BibleReader() {
           lastBookId: currentBook.id,
           lastChapterNum: currentChapterNum,
           lastVerseNum: targetVerseRef.current,
-          fontSize,
           highlights,
           notes,
           remindersEnabled,
@@ -416,7 +416,7 @@ export default function BibleReader() {
     }, 2000); // 2 second debounce
 
     return () => clearTimeout(timer);
-  }, [user, currentBook.id, currentChapterNum, fontSize, highlights, notes, remindersEnabled, reminderTime]);
+  }, [user, currentBook.id, currentChapterNum, highlights, notes, remindersEnabled, reminderTime]);
   // --- END FIREBASE SYNC LOGIC ---
 
   const requestNotificationPermission = async () => {
@@ -1531,28 +1531,90 @@ export default function BibleReader() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-6 p-4 bg-white/5 rounded-2xl border border-white/5">
-                  <div className="flex flex-col gap-3">
-                    <span className="text-sm font-bold text-white/50 uppercase tracking-wider px-1">
-                      Typography
-                    </span>
-                    <div className="flex items-center justify-between bg-white/5 rounded-full p-2 border border-white/5">
-                      <button
-                        onClick={() => setFontSize((f) => Math.max(12, f - 2))}
-                        className="w-12 h-12 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 active:bg-white/20 transition-colors"
-                        title="Decrease font size"
-                      >
-                        <span className="text-lg font-bold">A-</span>
-                      </button>
-                      <span className="text-sm font-medium text-white/50">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-sm font-bold text-white/50 uppercase tracking-wider">
+                        Typography
+                      </span>
+                      <span className="text-xs font-black text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">
                         {fontSize}px
                       </span>
-                      <button
-                        onClick={() => setFontSize((f) => Math.min(32, f + 2))}
-                        className="w-12 h-12 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 active:bg-white/20 transition-colors"
-                        title="Increase font size"
-                      >
-                        <span className="text-xl font-bold">A+</span>
-                      </button>
+                    </div>
+                    
+                    <div className="bg-white/5 rounded-3xl p-6 border border-white/5 flex flex-col gap-6">
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-bold text-white/30 uppercase">Size</span>
+                        <input 
+                          type="range"
+                          min="12"
+                          max="32"
+                          step="1"
+                          value={fontSize}
+                          onChange={(e) => setFontSize(parseInt(e.target.value))}
+                          className="flex-1 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-primary"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => setFontSize((f) => Math.max(12, f - 1))}
+                          className="flex-1 h-12 flex items-center justify-center rounded-2xl bg-white/5 text-white/70 hover:text-white hover:bg-white/10 active:scale-95 transition-all border border-white/5"
+                        >
+                          <span className="text-sm font-black">SMALLER</span>
+                        </button>
+                        <div className="w-4" />
+                        <button
+                          onClick={() => setFontSize((f) => Math.min(32, f + 1))}
+                          className="flex-1 h-12 flex items-center justify-center rounded-2xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 active:scale-95 transition-all border border-brand-primary/20"
+                        >
+                          <span className="text-sm font-black">LARGER</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3 mt-4 border-t border-white/5 pt-6">
+                    <span className="text-sm font-bold text-white/50 uppercase tracking-wider px-1">
+                      Display Options
+                    </span>
+                    <div className="bg-white/5 rounded-2xl p-5 border border-white/5 flex flex-col gap-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={cn(
+                              "p-2 rounded-xl transition-colors",
+                              isRedLetterEnabled
+                                ? "bg-red-500/20 text-red-500"
+                                : "bg-white/10 text-white/40",
+                            )}
+                          >
+                            <Eye className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm">Red Letter Mode</p>
+                            <p className="text-[10px] text-white/30 font-medium">
+                              Highlight the words of Jesus
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setIsRedLetterEnabled(!isRedLetterEnabled)}
+                          className={cn(
+                            "w-12 h-6 rounded-full relative transition-colors duration-300",
+                            isRedLetterEnabled ? "bg-red-500" : "bg-white/10",
+                          )}
+                        >
+                          <motion.div
+                            animate={{ x: isRedLetterEnabled ? 24 : 4 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 30,
+                            }}
+                            className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-lg"
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -2106,6 +2168,74 @@ export default function BibleReader() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {showQuickSize && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-24 left-6 right-6 z-[60] bg-[#1C1F26]/90 backdrop-blur-2xl border border-white/10 rounded-[32px] p-6 shadow-2xl md:max-w-xs md:left-auto md:right-8"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Type className="w-4 h-4 text-brand-primary" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Text Appearance</span>
+              </div>
+              <button 
+                onClick={() => setShowQuickSize(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/30 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-4">
+                <span className="text-xs font-bold text-white/20">A</span>
+                <input 
+                  type="range"
+                  min="12"
+                  max="32"
+                  step="1"
+                  value={fontSize}
+                  onChange={(e) => setFontSize(parseInt(e.target.value))}
+                  className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-primary"
+                />
+                <span className="text-lg font-bold text-white/20">A</span>
+              </div>
+              
+              <div className="flex items-center justify-between bg-white/5 rounded-2xl p-1 border border-white/5">
+                <button
+                  onClick={() => setFontSize(f => Math.max(12, f - 1))}
+                  className="flex-1 h-10 flex items-center justify-center rounded-xl hover:bg-white/5 text-white/60 active:scale-95 transition-all"
+                >
+                  <span className="text-xs font-black">SMALL</span>
+                </button>
+                <div className="w-[1px] h-4 bg-white/10" />
+                <button
+                  onClick={() => setFontSize(f => Math.min(32, f + 1))}
+                  className="flex-1 h-10 flex items-center justify-center rounded-xl hover:bg-white/5 text-white/60 active:scale-95 transition-all"
+                >
+                  <span className="text-xs font-black">LARGE</span>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button
+        onClick={() => setShowQuickSize(!showQuickSize)}
+        className={cn(
+          "fixed bottom-24 right-6 w-14 h-14 rounded-full z-50 flex items-center justify-center transition-all shadow-xl border border-white/10 backdrop-blur-xl",
+          showQuickSize 
+            ? "bg-brand-primary text-white scale-110 shadow-brand-primary/20 rotate-90" 
+            : "bg-app-surface text-white/40 hover:text-white hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+        )}
+      >
+        <Type className="w-6 h-6" strokeWidth={1.5} />
+      </button>
     </motion.div>
   );
 }

@@ -125,12 +125,33 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "type", "reference", "bookId", "chapterNum", "createdAt"]
+    },
+    "BibleSettings": {
+      "title": "Bible Reader Settings",
+      "description": "User preferences for the Bible reader",
+      "type": "object",
+      "properties": {
+        "fontSize": { "type": "number" },
+        "isRedLetter": { "type": "boolean" },
+        "lastBookId": { "type": "string" },
+        "lastChapterNum": { "type": "number" },
+        "lastVerseNum": { "type": "number" },
+        "highlights": { "type": "object" },
+        "notes": { "type": "object" },
+        "remindersEnabled": { "type": "boolean" },
+        "reminderTime": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "User",
       "description": "Global user profiles"
+    },
+    "/users/{userId}/settings/bible": {
+      "schema": "BibleSettings",
+      "description": "User's Bible reader preferences and last position"
     },
     "/users/{userId}/journal/{entryId}": {
       "schema": "JournalEntry",
